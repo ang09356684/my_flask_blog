@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+<!-- 此處匯入bootstrap的wtf檔案 -->
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+{% block content %}
+<div class="container">
+<p>感謝填寫，以下是您提供的訊息</p>
+<ul>
+<li>名字: {{session['name']}}</li>
+<li>密碼: {{session['password']}}</li>
+<li>年齡: {{session['age']}}</li>
+<li>性別: {{session['gender']}}</li>
+<li>排名: {{session['rank']}}</li>
+<li>同意加入這個組織: {{session['agreed']}}</li>
+<li>興趣: {{session['hobby']}}</li>
+<li>其他: {{session['others']}}</li>
+<li>點選日期: {{session['date1']}}</li>
+<li>手輸日期: {{session['datetime']}}</li>
+
+</ul>
+</div>
+{% endblock %}
+{% endblock %}
