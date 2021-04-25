@@ -16,5 +16,5 @@ def make_shell_context():
 def test():
     """Run the unit tests."""  # 顯示再說明的內容
     import unittest
-    tests = unittest.TestLoader().discover('tests')
-    unittest.TextTestRunner(verbosity=2).run(tests)
+    tests = unittest.TestLoader().discover('tests')  # 測試探索指定資料夾
+    unittest.TextTestRunner(verbosity=2).run(tests) # verbosity 調整執行測試時所輸出的細節。
