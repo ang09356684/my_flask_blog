@@ -9,13 +9,12 @@ from ..email import send_email
 
 
 @auth.before_app_request  # 註冊成全域的裝飾器
-def before_request():  # 如果使用者有登入下的判斷
-    if current_user.is_authenticated \
-            and not current_user.confirmed \
-            and request.endpoint \
-            and request.blueprint != 'auth' \
-            and request.endpoint != 'static':
-        return redirect(url_for('auth.unconfirmed'))
+def before_request():
+    if current_user.is_authenticated:  # 如果使用者有登入下的判斷
+        current_user.ping()  # 每次都執行 更新上次登入時間
+        if not current_user.confirmed and request.endpoint \
+            and request.blueprint != 'auth' and request.endpoint != 'static':
+            return redirect(url_for('auth.unconfirmed'))
 
 
 @auth.route('/unconfirmed')
