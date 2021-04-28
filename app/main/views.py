@@ -1,21 +1,37 @@
-from flask import render_template, redirect, url_for, abort, flash
+from flask import render_template, redirect, url_for, abort, flash, request, current_app
 from flask_login import login_required, current_user
 from . import main
-from .forms import EditProfileForm, EditProfileAdminForm
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm
 from .. import db
-from ..models import Role, User
+from ..models import Permission, Role, User, Post
 from ..decorators import admin_required
 
 
-@main.route('/')
+@main.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    form = PostForm()
+    # 送出後先檢查使用者寫入權限
+    if current_user.can(Permission.WRITE) and form.validate_on_submit():
+        post = Post(body=form.body.data,
+                    author=current_user._get_current_object())  # 傳入當前使用者的物件到author變數
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int) # 從request的查詢字串取得，預設是第一頁
+    # 先將所有文章按照時間排序 設定分頁選項
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],
+        error_out=False)
+    posts = pagination.items
+    return render_template('index.html', form=form, posts=posts,pagination=pagination)
 
 
+# 個人資訊頁
 @main.route('/user/<username>')
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()  # 若找不到user就跳404
-    return render_template('user.html', user=user)  # 將user傳入模板 顯示訊息
+    posts = user.posts.order_by(Post.timestamp.desc()).all()
+    return render_template('user.html', user=user, posts=posts)  # 將user傳入模板 顯示訊息
 
 
 # 一般使用者編輯頁面路由

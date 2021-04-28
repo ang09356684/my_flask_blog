@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% import "_macros.html" as macros %}
 {% block title %}Flasky - {{ user.username }}{% endblock %}
 
 {% block page_content %}
@@ -39,4 +39,14 @@
         </p>
     </div>
 </div>
+<!--匯入部分模板 顯示個人文章列表 -->
+<h3>Posts by {{ user.username }}</h3>
+{% include '_posts.html' %}
+
+<!--匯入分頁巨集-->
+{% if pagination %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.index') }}
+</div>
+{% endif %}
 {% endblock %}

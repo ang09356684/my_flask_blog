@@ -86,6 +86,7 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)  # 建立時間
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)  # 上次訪問時間
     avatar_hash = db.Column(db.String(32))  # 儲存頭像URL用
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __init__(self, **kwargs):  # 新增建構式
         super(User, self).__init__(**kwargs)
@@ -182,12 +183,10 @@ class User(UserMixin, db.Model):
     def gravatar_hash(self):  # 產生email MD5 hash值
         return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
 
-    def gravatar(self, size=100, default='identicon', rating='g'): # 產生gravatar的URL
+    def gravatar(self, size=100, default='identicon', rating='g'):  # 產生gravatar的URL
         url = 'https://secure.gravatar.com/avatar'
         hash = self.avatar_hash or self.gravatar_hash()
         return f'{url}/{hash}?s={size}&d={default}&r={rating}'
-
-
 
     def __repr__(self):
         return f'<User> {self.username}'
@@ -207,3 +206,10 @@ login_manager.anonymous_user = AnonymousUser
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
 
 {% block title %}Flasky{% endblock %}
 
@@ -10,4 +11,19 @@
                 {% else %}Stranger
                 {% endif %}!</h1>
 </div>
+<div>
+<!--  有寫入權限才會顯示文章輸入框  -->
+    {% if current_user.can(Permission.WRITE) %}
+    {{ wtf.quick_form(form) }}
+    {% endif %}
+</div>
+<!-- 匯入_posts的共通模板 -->
+{% include '_posts.html' %}
+
+<!--匯入分頁巨集-->
+{% if pagination %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, '.index') }}
+</div>
+{% endif %}
 {% endblock %}
