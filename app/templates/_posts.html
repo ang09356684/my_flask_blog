@@ -31,6 +31,11 @@
                 <a href="{{ url_for('.post', id=post.id) }}">
                     <span class="label label-default">Permalink</span>
                 </a>
+                <!--  連接到文章評論    -->
+                <a href="{{ url_for('.post', id=post.id) }}#comments">
+                <!--    透過關聯取得評論總數     -->
+                    <span class="label label-primary">{{ post.comments.count() }} Comments</span>
+                </a>
             </div>
     </li>
     {% endfor %}

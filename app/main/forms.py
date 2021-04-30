@@ -52,7 +52,12 @@ class EditProfileAdminForm(FlaskForm):  # 管理員使用表單
             raise ValidationError('Username already in use.')
 
 
-class PostForm(FlaskForm):
+class PostForm(FlaskForm):  # 文章表單
     body = PageDownField("What's on your mind?", validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+class CommentForm(FlaskForm):  # 評論表單
+    body = StringField('Enter your comment', validators=[DataRequired()])
     submit = SubmitField('Submit')
 

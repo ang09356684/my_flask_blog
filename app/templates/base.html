@@ -31,6 +31,10 @@
                 {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
+                <!--     修改評論連結     -->
+                {% if current_user.can(Permission.MODERATE) %}
+                <li><a href="{{ url_for('main.moderate') }}">Moderate Comments</a></li>
+                {% endif %}
                 {% if current_user.is_authenticated %}
                 <!--  登入狀況下提供下拉選單   -->
                 <li class="dropdown">
