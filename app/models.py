@@ -73,6 +73,13 @@ class Role(db.Model):
         return '<Role %r>' % self.name
 
 
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -88,6 +95,23 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)  # 上次訪問時間
     avatar_hash = db.Column(db.String(32))  # 儲存頭像URL用
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    followed = db.relationship('Follow', foreign_keys=[Follow.follower_id],
+                                         backref=db.backref('follower', lazy='joined'),
+                                         lazy='dynamic',
+                                         cascade='all, delete-orphan')
+    followers = db.relationship('Follow', foreign_keys=[Follow.followed_id],
+                                          backref=db.backref('followed', lazy='joined'),
+                                          lazy='dynamic',
+                                          cascade='all, delete-orphan')
+
+    @staticmethod
+    def add_self_follows(): # 追隨自己的文章
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+                db.session.commit()
+
 
     def __init__(self, **kwargs):  # 新增建構式
         super(User, self).__init__(**kwargs)
@@ -99,6 +123,7 @@ class User(UserMixin, db.Model):
         # 判斷有email卻沒有圖像連結時才創建
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = self.gravatar_hash()
+        self.follow(self)  # 設置追隨自己
 
     @property  # property 是只能讀取的屬性特性
     def password(self):
@@ -189,6 +214,34 @@ class User(UserMixin, db.Model):
         hash = self.avatar_hash or self.gravatar_hash()
         return f'{url}/{hash}?s={size}&d={default}&r={rating}'
 
+    def follow(self, user): # 加入追隨者
+        if not self.is_following(user):  # 檢查如果不是現有追隨者的話就加入
+            f = Follow(followed=user)
+            self.followed.append(f)
+
+    def unfollow(self, user): # 解除追隨關係
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            self.followed.remove(f)
+
+    # 檢查一對多關係 若有就回傳
+    def is_following(self, user):
+        if user.id is None:  # 檢查user.id 是否存在
+            return False
+        return self.followed.filter_by(
+            followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(
+            follower_id=user.id).first() is not None
+
+    @property
+    def followed_posts(self):  # 取得被追隨的文章
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id)\
+            .filter(Follow.follower_id == self.id)
+
     def __repr__(self):
         return f'<User> {self.username}'
 
@@ -226,3 +279,5 @@ class Post(db.Model):
             tags=allowed_tags, strip=True))
 # 設置監聽 當body被設為新值時自動呼叫
 db.event.listen(Post.body, 'set', Post.on_changed_body)
+
+
