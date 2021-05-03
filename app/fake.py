@@ -6,7 +6,7 @@ from .models import User, Post
 
 
 def users(count=100):  # 透過Faker建立一百名使用者的假資料
-    fake = Faker()
+    fake = Faker('zh_TW', 'ja_JP', 'en_US')
     i = 0
     while i < count:
         user = User(email=fake.email(),
@@ -27,7 +27,7 @@ def users(count=100):  # 透過Faker建立一百名使用者的假資料
 
 
 def posts(count=100):  # 創建假文章
-    fake = Faker()
+    fake = Faker('zh_TW', 'ja_JP', 'en_US')
     user_count = User.query.count()
     for i in range(count):
         # 用offset掉隨機整數 取得user 再指派給文章 建立關聯
